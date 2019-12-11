@@ -28,12 +28,13 @@ services:
       dockerfile: Dockerfile
     environment:
       LEDGER_URL: ${LEDGER_URL}
-      APPLICATION_URL: ${APPLICATION_URL:-http://localhost:5001}
-      ENDPOINT_URL: ${ENDPOINT_URL:-http://localhost:5001}
+      #APPLICATION_URL: ${APPLICATION_URL:-http://localhost:5001}
+      #ENDPOINT_URL: ${ENDPOINT_URL:-http://localhost:5001}
       CONFIG_ROOT: ../config
+      HOST_PORT: ${CONTROLLER_PORT}
       ENVIRONMENT: ${ENVIRONMENT:-default}
       ENABLE_GUNICORN: ${ENABLE_GUNICORN:-0}
-      INDY_LEDGER_URL: ${LEDGER_URL:-http://localhost:9000}
+      #INDY_LEDGER_URL: ${LEDGER_URL:-http://localhost:9000}
       FORMS: ${FORMS}
       ISSUERS: ${ISSUERS}
       LOG_LEVEL: ${LOG_LEVEL}
@@ -57,10 +58,9 @@ services:
       TOB_AGENT_ADMIN_URL: ${TOB_AGENT_ADMIN_URL}
       TOB_ADMIN_API_KEY: ${TOB_ADMIN_API_KEY}
     networks:
-#local      - orgbook
       - myorg
     ports:
-      - ${WEBHOOK_PORT}:${WEBHOOK_PORT}
+      - ${EXPOSED_CONTROLLER_PORT}:${CONTROLLER_PORT}
     depends_on:
       - myorg-agent
     entrypoint: >
@@ -88,7 +88,6 @@ services:
       - AGENT_ADMIN_PORT=${AGENT_ADMIN_PORT}
       - AGENT_NAME=${AGENT_NAME}
     networks:
-#local      - orgbook
       - myorg
     ports:
       - ${AGENT_HTTP_IN_PORT}:${AGENT_HTTP_IN_PORT}
@@ -108,10 +107,13 @@ services:
         --outbound-transport ws \
         --outbound-transport http \
         --genesis-url '${LEDGER_URL}/genesis' \
+        --auto-accept-invites \
+        --auto-accept-requests \
         --auto-ping-connection \
         --auto-respond-messages \
         --auto-respond-credential-offer \
         --auto-respond-presentation-request \
+        --auto-respond-credential-request \
         --auto-verify-presentation \
         --auto-accept-invites \
         --auto-accept-requests \
@@ -125,7 +127,7 @@ services:
         --admin '0.0.0.0' ${AGENT_ADMIN_PORT} \
         --${AGENT_ADMIN_MODE} \
         --label ${AGENT_NAME} \
-        --protocol indy_catalyst_issuer_registration",
+        --plugin indy_catalyst_issuer_registration",
       ]
 
   myorg-wallet-db:
@@ -136,7 +138,6 @@ services:
       - POSTGRESQL_DATABASE=${POSTGRESQL_DATABASE}
       - POSTGRESQL_ADMIN_PASSWORD=${POSTGRESQL_ADMIN_PASSWORD}
     networks:
-#local      - orgbook
       - myorg
     ports:
       - 5435:5432
@@ -203,6 +204,3 @@ volumes:
 
 networks:
   myorg:
-#local  orgbook:
-#local    external:
-#local      name: tob_tob
